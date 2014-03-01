@@ -53,9 +53,13 @@ class Workload(BaseWorkload):
         'hadoop_master_role': 'hadoop_master',
         'hadoop_path': '/usr/lib/hadoop/',
         'hadoop_example': 'hadoop-examples-1.2.1.jar',
+        'hadoop_test': 'hadoop-test-1.2.1.jar',
         'hadoop_user': 'hdfs',
         'terasort_data_path': '/teragen',
         'terasort_size': 500000,
+        'dfsio_number_files': 64,
+        'dfsio_file_size': 16,
+        'dfsio_result_file': '/tmp/TestDFSIOwrite.txt'
     }
 
     DEPLOY_SEQUENCE = [
@@ -84,6 +88,10 @@ class Workload(BaseWorkload):
         return os.path.join(self.config['hadoop_path'],
                             self.config['hadoop_example'])
 
+    def test_jar(self):
+        return os.path.join(self.config['hadoop_path'],
+                            self.config['hadoop_test'])
+    
     def hadoop_bin(self):
         return os.path.join(self.config['hadoop_path'], 'bin/hadoop')
 
@@ -105,6 +113,17 @@ class Workload(BaseWorkload):
             self.example_jar(),
             self.config['terasort_data_path'],
             self.config['terasort_data_path']
+        )
+
+    def dfsio_command(self):
+    	"""
+	    """
+    	return "%s jar %s TestDFSIO -write -nrFiles %d -fileSize %d -resFile %s" %(
+            self.hadoop_bin(),
+            self.test_jar(),
+            self.config["dfsio_number_files"],
+            self.config["dfsio_file_size"],
+            self.config["dfsio_result_file"]
         )
 
     def run(self):
@@ -198,4 +217,5 @@ class Workload(BaseWorkload):
 
 if __name__ == "__main__":
     load = Workload()
-    load.run()
+    #load.run()
+    load.dfsio_command()
