@@ -166,6 +166,21 @@ class Workload(BaseWorkload):
         #print "Stderr: ", terasort_resp.get('stderr', 'woops')
         self.result['terasort'] = TeraResult(terasort_resp, start, end)
 
+        dfsio_cmd = self.dfsio_command()
+        print "running: ", dfsio_cmd
+        kwargs.update({
+            'arg': (terasort_cmd,)
+        })
+        start = time.time()
+        dfsio_response = self.client.cmd(runner.id_, 'cmd.run_all', **kwargs)
+        dfsio_response = dfsio_response.values()[0]
+        end = time.time()
+        #print "DFSIO response:"
+        #print "Retcode: %s" % dfsio_response['retcode']
+        #print "Stdout: ", dfsio_response.get('stdout', 'woops')
+        #print "Stderr: ", dfsio_response.get('stderr', 'woops')
+        self.result['dfsio'] = TeraResult(dfsio_response, start, end)
+
     def view(self):
         """
         Should return a string view of this workload.  The string should be
