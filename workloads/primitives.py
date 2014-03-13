@@ -26,12 +26,25 @@ class Workload(BaseWorkload):
         'target_role': 'primitives_target',
         'primitives_dir': '/opt/primitives',
 
-        'cpu_tests': ['dhry2reg'],
+        'cpu_tests': [
+            'dhry2reg',
+            'whetstone-double',
+            'syscall',
+            'pipe',
+            'context1',
+            'spawn',
+            'execl'
+        ],
         'cpu_dir': 'UnixBench',
         'cpu_iterations_per_test': 10,
-        'cpu_parallel_copies': 1,
 
-        'io_tests': ['randomrw.f'],
+        'io_tests': [
+            'randomrw.f', 
+            'singlestreamreaddirect.f',
+            'singlestreamread.f',
+            'singlestreamwritedirect.f',
+            'singlestreamwrite.f'
+        ],
         'io_dir': 'filebench-1.4.9.1',
 
         'network_dir': 'iperf-2.0.5'
@@ -136,9 +149,8 @@ class Workload(BaseWorkload):
 
         :returns: String
         """
-        cmd = './Run %s -c %s -i %s' % (
-            ','.join(self.config['cpu_tests']),
-            self.config['cpu_parallel_copies'],
+        cmd = './Run %s %s -i %s' % (
+            ' '.join(self.config['cpu_tests']),
             self.config['cpu_iterations_per_test']
         )
 
@@ -153,11 +165,6 @@ class Workload(BaseWorkload):
             }
         }
         return kwargs
-
-        #tests = self.cpu_tests
-        #return [script] + tests + \
-        #       ['-c', str(self.cpu_parallel_copies),
-        #        '-i', str(self.cpu_iterations_per_test)]
 
     def io_commands(self):
         """
@@ -219,14 +226,17 @@ class Workload(BaseWorkload):
         #take output and analyze it. Basically take weighted averages of
         #results
         ub_info = {
-            "dhry2reg":
-            {
-                "normalizer": 119342529.0,
+            "run_1": {
+                "normalizer": 1000,
+                "weight": 1
+            },
+            "run_2": {
+                "normalizer": 3000,
                 "weight": 1
             }
         }
-        ub_create_score_dict = lambda x: {test_name: x[test_name]["score"]
-                                          for test_name in x["list"]}
+        ub_create_score_dict = lambda x: {"run_%d" % test_run: x[test_run]["index"]["system"]
+                                          for test_run in [1, 2]}
         self.cpu_analyzer = bench_analyzer(ub_info,
                                            ub_create_score_dict,
                                            json_data=cpu_data)
@@ -247,8 +257,23 @@ class Workload(BaseWorkload):
 
         #analyze results. as before this is essentially a weighted average
         fb_info = {
-            "randomrw.f":
-            {
+            "randomrw.f": {
+                "normalizer": 120.0,
+                "weight": 1
+            },
+            "singlestreamreaddirect.f": {
+                "normalizer": 120.0,
+                "weight": 1
+            },
+            "singlestreamread.f": {
+                "normalizer": 120.0,
+                "weight": 1
+            },
+            "singlestreamwritedirect.f": {
+                "normalizer": 120.0,
+                "weight": 1
+            },
+            "singlestreamwrite.f": {
                 "normalizer": 120.0,
                 "weight": 1
             }
